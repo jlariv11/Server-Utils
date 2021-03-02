@@ -1,0 +1,42 @@
+name: ServerUtils
+author: jlariv11
+version: 1.0
+main: main.jake.plugin.ServerUtils
+description: Adds useful commands for servers
+
+commands:
+  pvp:
+    description: Enables or disables pvp for a player
+    usage: /pvp enable/disable <player>
+    permission: serverutils.pvp
+    permission-message: You don't have permission to use this command
+  warp:
+    description: Warps to a previously set warp
+    usage: /warp [name]
+    permission: serverutils.warp
+    permission-message: You don't have permission to use this command
+  setwarp:
+    description: Set a new warp
+    usage: /setwarp [name] <public>
+    permission: serverutils.setwarp
+    permission-message: You don't have permission to use this command
+  warps:
+    description: Lists all warps available to you
+    usage: /warps
+    permission: serverutils.listwarp
+    permission-message: You don't have permission to use this command
+  delwarp:
+    description: Deletes a warp
+    usage: /delwarp [name]
+    permission: serverutils.delwarp
+    permission-message: You don't have permission to use this command
+  xpshare:
+    description: Give experience to another player
+    usage: /xpshare [player] [levels]
+    permission: serverutils.xpshare
+    permission-message: You don't have permission to use this command
+  test:
+    description: test
+    usage: /test
+    permission: serverutils.test
+    permission-message: test
