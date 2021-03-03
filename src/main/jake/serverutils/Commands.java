@@ -3,8 +3,11 @@ package main.jake.serverutils;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.craftbukkit.libs.jline.internal.Log;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
+
+import java.util.HashMap;
 
 public class Commands implements CommandExecutor, Listener {
 
@@ -14,10 +17,15 @@ public class Commands implements CommandExecutor, Listener {
     public final String list = "warps";
     public final String delWarp = "delwarp";
     public final String xpShare = "xpshare";
+    public final String tpa = "tpa";
+
+    public final String[] commands = {pvp, setWarp, warp, list, delWarp, xpShare, "test", tpa};
 
     private ServerUtils plugin;
     private WarpFileHandler fileHandler;
     private int pvpCooldown;
+
+    public HashMap<Player, Player> tpaList = new HashMap<>();
 
     public Commands(ServerUtils plugin) {
         this.plugin = plugin;
@@ -190,7 +198,38 @@ public class Commands implements CommandExecutor, Listener {
                     }
                 }
                 return false;
-
+            case tpa:
+                if(!(commandSender instanceof Player)) {
+                    commandSender.sendMessage("Only a player may use this command");
+                    return false;
+                }
+                if(args.length == 0)
+                    return false;
+                Player target = commandSender.getServer().getPlayer(args[0]);
+                if(target != null){
+                    target.sendMessage(commandSender.getName() + " wants to teleport to you. /tpa confirm or /tpa deny");
+                    if(tpaList.replace(target, (Player) commandSender) == null){
+                        tpaList.put(target, (Player) commandSender);
+                    }
+                }else if(args[0].equals("confirm")){
+                    if(tpaList.containsKey(commandSender)){
+                        tpaList.get(commandSender).teleport(((Player) commandSender).getLocation());
+                        tpaList.remove(commandSender);
+                        commandSender.sendMessage("Request confirmed!");
+                    }else{
+                        commandSender.sendMessage("You don't have any active tpa requests!");
+                    }
+                }else if(args[0].equals("deny")) {
+                    if (tpaList.containsKey(commandSender)) {
+                        tpaList.remove(commandSender);
+                        commandSender.sendMessage("Request denied!");
+                    } else {
+                        commandSender.sendMessage("You don't have any active tpa requests!");
+                    }
+                }else{
+                    return false;
+                }
+                return true;
             case "test":
                 return true;
         }

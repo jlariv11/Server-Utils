@@ -34,13 +34,10 @@ public class ServerUtils extends JavaPlugin {
         getServer().getConsoleSender().sendMessage(ChatColor.GREEN + "Server Utils has been enabled");
         getServer().getPluginManager().registerEvents(new Events(), this);
         Commands commands = new Commands(this);
-        getCommand(commands.pvp).setExecutor(commands);
-        getCommand(commands.setWarp).setExecutor(commands);
-        getCommand(commands.warp).setExecutor(commands);
-        getCommand(commands.list).setExecutor(commands);
-        getCommand(commands.delWarp).setExecutor(commands);
-        getCommand(commands.xpShare).setExecutor(commands);
-        //getCommand("test").setExecutor(commands);
+
+        for(String cmd : commands.commands){
+            getCommand(cmd).setExecutor(commands);
+        }
 
         noPvp = pvpFiles.readNoPvP();
         pvp = pvpFiles.readPvP();

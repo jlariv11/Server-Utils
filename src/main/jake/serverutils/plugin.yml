@@ -35,6 +35,12 @@ commands:
     usage: /xpshare [player] [levels]
     permission: serverutils.xpshare
     permission-message: You don't have permission to use this command
+  tpa:
+    description: Request accept and deny teleports
+    usage: /tpa <player> /tpa <confirm/deny>
+    permission: serverutils.tpa
+    permission-message: You don't have permission to use this command
+
   test:
     description: test
     usage: /test
