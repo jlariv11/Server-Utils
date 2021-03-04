@@ -1,13 +1,13 @@
 name: ServerUtils
 author: jlariv11
-version: 2.1
+version: 2.2
 main: main.jake.serverutils.ServerUtils
 description: Adds useful commands for servers
 
 commands:
   pvp:
-    description: Enables or disables pvp for a player
-    usage: /pvp enable/disable <player>
+    description: Enables or disables pvp for a player or lists the players who have pvp enabled or disabled
+    usage: /pvp enable/disable <player> /pvp list
     permission: serverutils.pvp
     permission-message: You don't have permission to use this command
   warp:

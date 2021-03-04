@@ -1,5 +1,6 @@
 package main.jake.serverutils;
 
+import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -116,6 +117,16 @@ public class Commands implements CommandExecutor, Listener {
                                return false;
                            }
                        }
+                   }else if(args[0].equals("list")){
+                       commandSender.sendMessage(ChatColor.RED + "PvP enabled players: ");
+                       for(String player : ServerUtils.pvp.keySet()){
+                           commandSender.sendMessage(player);
+                       }
+                       commandSender.sendMessage(ChatColor.GREEN + "PvP disabled players: ");
+                       for(String player : ServerUtils.noPvp.keySet()){
+                           commandSender.sendMessage(player);
+                       }
+                       return true;
                    }
                 }
             case setWarp:
