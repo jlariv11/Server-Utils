@@ -28,11 +28,14 @@ public class ServerUtils extends JavaPlugin {
             }
         }
         config.addDefault("pvpCooldownTimer", 1800);//60s*30m
+        config.addDefault("tntOverworld", false);
+        config.addDefault("tntNether", true);
+        config.addDefault("tntEnd", true);
         config.options().copyDefaults(true);
         saveConfig();
 
         getServer().getConsoleSender().sendMessage(ChatColor.GREEN + "Server Utils has been enabled");
-        getServer().getPluginManager().registerEvents(new Events(), this);
+        getServer().getPluginManager().registerEvents(new Events(this), this);
         Commands commands = new Commands(this);
 
         for(String cmd : commands.commands){
