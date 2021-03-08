@@ -30,6 +30,7 @@ public class ServerUtils extends JavaPlugin {
             }
         }
         config.addDefault("pvpCooldownTimer", 1800);//60s*30m
+        config.addDefault("pvpDisableDefault", true);
         config.addDefault("tntOverworld", false);
         config.addDefault("tntNether", true);
         config.addDefault("tntEnd", true);
@@ -47,7 +48,7 @@ public class ServerUtils extends JavaPlugin {
         noPvp = pvpFiles.readNoPvP();
         pvp = pvpFiles.readPvP();
         warps = warpFile.readFromFile();
-        Log.info(warps);
+
 
         getServer().getScheduler().scheduleSyncRepeatingTask(this, new Runnable() {
             @Override
