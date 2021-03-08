@@ -27,6 +27,7 @@ public class Events implements Listener {
         Entity en = e.getDamager();
         Entity p = e.getEntity();
         if(en instanceof Player && p instanceof Player){
+            //Checks if either the attacker or the damage receiver has pvp disabled and if so cancels the damage
             if(ServerUtils.noPvp.containsKey(p.getName()) || ServerUtils.noPvp.containsKey(en.getName())){
                 e.setCancelled(true);
             }
@@ -37,6 +38,8 @@ public class Events implements Listener {
     public void onBlockPlaced(BlockPlaceEvent e){
         if(e.getBlock().getType() == Material.TNT) {
             World.Environment environment = e.getPlayer().getWorld().getEnvironment();
+            //check if tnt is being placed in each dimension and checks if it is blocked by config
+            //if so cancel the event
             if(environment == World.Environment.NORMAL){
                 if (!plguin.getConfig().getBoolean("tntOverworld")) {
                     e.getPlayer().sendMessage("TNT is not enabled here");

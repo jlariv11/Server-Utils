@@ -6,6 +6,7 @@ import org.bukkit.craftbukkit.libs.jline.internal.Log;
 import org.bukkit.entity.Player;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.reflect.Array;
@@ -16,7 +17,7 @@ import java.util.Scanner;
 
 public class WarpFileHandler {
 
-    private final String fileName = "plugins/ServerUtils/warps.txt";
+    private final File warpFile = new File("plugins/ServerUtils/warps.txt");
 
     private ServerUtils plugin;
 
@@ -24,41 +25,29 @@ public class WarpFileHandler {
         this.plugin = plugin;
     }
 
+    //Writes the warp name, owner and location x, y, z to a file
     public void writeToFile(){
         try{
-            File warpFile = new File(fileName);
             if(!warpFile.exists()){
-                //warpFile.mkdir();
                 warpFile.createNewFile();
             }
             FileWriter writer = new FileWriter(warpFile);
             for(Warp warp : ServerUtils.warps) {
-//                if (warp.loc == null && warp.world == null && !append) {
-//                    writer.write("");
-//                    writer.close();
-//                    return;
-//                }
                 double x = warp.getLoc().getX();
                 double y = warp.getLoc().getY();
                 double z = warp.getLoc().getZ();
-                float pitch = warp.getLoc().getPitch();
-                float yaw = warp.getLoc().getYaw();
-                writer.write("\n" + warp.getName() + "," + warp.getOwner() + "," + x + "," + y + "," + z + "," + pitch + "," + yaw + "," + warp.getWorld().getName());
+                writer.write("\n" + warp.getName() + "," + warp.getOwner() + "," + x + "," + y + "," + z + "," + warp.getWorld().getName());
             }
             writer.close();
-        }catch (IOException ignored){
-
+        }catch (IOException e){
+            plugin.getServer().getConsoleSender().sendMessage("Failed to create warp file");
         }
     }
 
+    //Read the warp file and add warp name, owner, and location to a list of the Warp class
     public List<Warp> readFromFile(){
         List<Warp> warpList = new ArrayList<>();
         try{
-            File warpFile = new File(fileName);
-            if(!warpFile.exists()){
-                warpFile.createNewFile();
-                return null;
-            }
             Scanner scan = new Scanner(warpFile);
             while(scan.hasNext()){
                 String[] line = scan.nextLine().split(",");
@@ -67,11 +56,10 @@ public class WarpFileHandler {
                 double x = Double.parseDouble(line[2]);
                 double y = Double.parseDouble(line[3]);
                 double z = Double.parseDouble(line[4]);
-                float pitch = Float.parseFloat(line[5]);
-                float yaw = Float.parseFloat(line[6]);
-                warpList.add(new Warp(line[0], line[1], new Location(plugin.getServer().getWorld(line[7]), x, y, z, yaw, pitch)));
+                warpList.add(new Warp(line[0], line[1], new Location(plugin.getServer().getWorld(line[5]), x, y, z)));
             }
-        } catch (IOException ignored) {
+        } catch (FileNotFoundException ignored) {
+            //If there is no file, no warps were saved so just return an empty list
         }
 
         return warpList;

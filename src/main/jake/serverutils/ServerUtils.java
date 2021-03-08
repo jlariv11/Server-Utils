@@ -29,6 +29,9 @@ public class ServerUtils extends JavaPlugin {
                 getServer().getConsoleSender().sendMessage("ServerUtils: Unable to create plugin directory");
             }
         }
+
+        //Config Settings
+
         config.addDefault("pvpCooldownTimer", 1800);//60s*30m
         config.addDefault("pvpDisableDefault", true);
         config.addDefault("tntOverworld", false);
@@ -37,19 +40,25 @@ public class ServerUtils extends JavaPlugin {
         config.options().copyDefaults(true);
         saveConfig();
 
+
+
+
         getServer().getConsoleSender().sendMessage(ChatColor.GREEN + "Server Utils has been enabled");
         getServer().getPluginManager().registerEvents(new Events(this), this);
         Commands commands = new Commands(this);
 
+        //Command Registry
         for(String cmd : commands.commands){
             getCommand(cmd).setExecutor(commands);
         }
 
+        //Read files for saved data
         noPvp = pvpFiles.readNoPvP();
         pvp = pvpFiles.readPvP();
         warps = warpFile.readFromFile();
 
 
+        //Controls the cooldown for switching pvp status counts down 1 per second
         getServer().getScheduler().scheduleSyncRepeatingTask(this, new Runnable() {
             @Override
             public void run() {
@@ -69,6 +78,8 @@ public class ServerUtils extends JavaPlugin {
 
     public void onDisable(){
         getServer().getConsoleSender().sendMessage(ChatColor.RED + "Server Utils has been disabled");
+
+        //Save data to files
         pvpFiles.write();
         warpFile.writeToFile();
 
