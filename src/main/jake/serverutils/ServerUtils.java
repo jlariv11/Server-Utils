@@ -3,6 +3,7 @@ package main.jake.serverutils;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.craftbukkit.libs.jline.internal.Log;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
@@ -13,9 +14,10 @@ public class ServerUtils extends JavaPlugin {
     public static HashMap<String, Integer> pvp = new LinkedHashMap<>();
     public static HashMap<String, Integer> noPvp = new LinkedHashMap<>();
 
-    public HashMap<String[], Location> warps = new HashMap<>();
+    public static List<Warp> warps = new ArrayList<>();
 
     PvPFileHandler pvpFiles = new PvPFileHandler();
+    WarpFileHandler warpFile = new WarpFileHandler(this);
     FileConfiguration config = this.getConfig();
 
 
@@ -44,6 +46,8 @@ public class ServerUtils extends JavaPlugin {
 
         noPvp = pvpFiles.readNoPvP();
         pvp = pvpFiles.readPvP();
+        warps = warpFile.readFromFile();
+        Log.info(warps);
 
         getServer().getScheduler().scheduleSyncRepeatingTask(this, new Runnable() {
             @Override
@@ -65,6 +69,7 @@ public class ServerUtils extends JavaPlugin {
     public void onDisable(){
         getServer().getConsoleSender().sendMessage(ChatColor.RED + "Server Utils has been disabled");
         pvpFiles.write();
+        warpFile.writeToFile();
 
     }
 

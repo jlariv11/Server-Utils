@@ -1,6 +1,7 @@
 package main.jake.serverutils;
 
 import org.bukkit.ChatColor;
+import org.bukkit.Location;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -20,7 +21,7 @@ public class Commands implements CommandExecutor, Listener {
     public final String xpShare = "xpshare";
     public final String tpa = "tpa";
 
-    public final String[] commands = {pvp, setWarp, warp, list, delWarp, xpShare, "test", tpa};
+    public final String[] commands = {pvp, setWarp, warp, list, delWarp, xpShare, tpa};
 
     private ServerUtils plugin;
     private WarpFileHandler fileHandler;
@@ -130,60 +131,74 @@ public class Commands implements CommandExecutor, Listener {
                    }
                 }
             case setWarp:
-                if(commandSender instanceof Player){
-                    if(args.length == 1){
-                        if(!fileHandler.hasWarp(args[0], commandSender.getName())) {
-                            commandSender.sendMessage("Warp " + args[0] + " set!");
-                            fileHandler.writeToFile(args[0], commandSender.getName(), ((Player) commandSender).getLocation(), ((Player) commandSender).getWorld(), true);
-                            return true;
-                        }
-                    }else if(args.length == 2 && args[1].equals("true")){
-                        if(!fileHandler.hasWarp(args[0], "public")){
-                            commandSender.sendMessage("Public warp " + args[0] + " set!");
-                            fileHandler.writeToFile(args[0], "public", ((Player) commandSender).getLocation(), ((Player) commandSender).getWorld(), true);
-                            return true;
-                        }
-                    }
+                if(args.length == 0){
+                    return false;
                 }
-                return false;
-            case warp:
                 if(commandSender instanceof Player){
+                    String name = "";
                     if(args.length == 1){
-                        if(fileHandler.hasWarp(args[0], commandSender.getName())){
-                            ((Player) commandSender).teleport(fileHandler.readFromFile(args[0], (Player) commandSender));
-                            return true;
-                        }else if(fileHandler.hasWarp("public", commandSender.getName())){
-                            ((Player) commandSender).teleport(fileHandler.readFromFile(args[0], (Player) commandSender));
-                            return true;
-                        }else{
+                        name = commandSender.getName();
+                    }else if(args.length == 2 && args[1].equals("true")){
+                        name = "public";
+                    }
+                    if(getWarpFromName(args[0]) == null) {
+                        commandSender.sendMessage("Warp " + args[0] + " set!");
+                        ServerUtils.warps.add(new Warp(args[0], name, ((Player) commandSender).getLocation()));
+                    }else{
+                        commandSender.sendMessage("This warp already exists");
+                    }
+                }else{
+                    commandSender.sendMessage("Only players can use this command");
+                }
+                return true;
+            case warp:
+                if (commandSender instanceof Player) {
+                    if (args.length == 1) {
+                        Warp warp = getWarpFromName(args[0]);
+                        if (warp != null) {
+                            if (warp.getOwner().equals("public") || warp.getOwner().equals(commandSender.getName())) {
+                                Location toTeleport = warp.getLoc();
+                                toTeleport.setPitch(((Player) commandSender).getLocation().getPitch());
+                                toTeleport.setYaw(((Player) commandSender).getLocation().getYaw());
+                                ((Player) commandSender).teleport(toTeleport);
+                            }
+                        } else {
                             commandSender.sendMessage("Warp does not exist!");
-                            return true;
                         }
+                    }else{
+                        return false;
                     }
 
                 }
-                return false;
+                return true;
             case list:
                 if(commandSender instanceof Player){
-                    if(fileHandler.getAllWarps((Player) commandSender).size() == 0){
+                    if(ServerUtils.warps.size() == 0){
                         commandSender.sendMessage("No warps available");
-                        return true;
                     }
-                    for(String w : fileHandler.getAllWarps((Player) commandSender)){
-                     commandSender.sendMessage(w);
+                    for(Warp warp : ServerUtils.warps){
+                     commandSender.sendMessage(warp.getName());
                     }
-                    return true;
+                }else{
+                    commandSender.sendMessage("Only player can use this command");
                 }
+                return true;
             case delWarp:
                 if(commandSender instanceof Player){
                     if(args.length == 1){
-                        if(fileHandler.hasWarp(args[0], commandSender.getName())){
-                            fileHandler.removeWarp(args[0]);
+                        Warp warp = getWarpFromName(args[0]);
+                        if(warp != null){
+                            if(warp.getOwner().equals("public") || warp.getOwner().equals(commandSender.getName()))
+                            ServerUtils.warps.remove(warp);
                             commandSender.sendMessage("Warp " + args[0] + " deleted!");
-                            return true;
+                        }else{
+                            commandSender.sendMessage("Warp does not exist!");
                         }
+                    }else{
+                        return false;
                     }
                 }
+                return true;
             case xpShare:
                 if(commandSender instanceof Player){
                     if(args.length == 2){
@@ -246,4 +261,14 @@ public class Commands implements CommandExecutor, Listener {
         }
         return true;
     }
+
+    private Warp getWarpFromName(String name){
+        for(Warp warp : ServerUtils.warps){
+            if(warp.getName().equals(name)){
+                return warp;
+            }
+        }
+        return null;
+    }
+
 }
