@@ -33,4 +33,16 @@ public class Warp {
         return world;
     }
 
+    public boolean isPublic(){
+        return owner.equals("public");
+    }
+
+    public boolean isAvailable(String playerName){
+        return isPublic() || isOwned(playerName);
+    }
+
+    public boolean isOwned(String playerName){
+        return getOwner().equals(playerName);
+    }
+
 }
