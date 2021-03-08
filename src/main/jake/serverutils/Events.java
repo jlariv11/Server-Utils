@@ -12,6 +12,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
 
 public class Events implements Listener {
 
@@ -51,6 +52,18 @@ public class Events implements Listener {
                     e.getPlayer().sendMessage("TNT is not enabled here");
                     e.setCancelled(true);
                 }
+            }
+        }
+    }
+
+    @EventHandler
+    public void playerJoinEvent(PlayerJoinEvent e){
+        //Checks to see if a player has a pvp status and if they don't disable or enable pvp as a default set by config
+        if(ServerUtils.noPvp.containsKey(e.getPlayer().getName()) && ServerUtils.pvp.containsKey(e.getPlayer().getName())){
+            if(plguin.config.getBoolean("pvpDisableDefault")) {
+                ServerUtils.noPvp.put(e.getPlayer().getName(), 0);
+            }else{
+                ServerUtils.pvp.put(e.getPlayer().getName(), 0);
             }
         }
     }
