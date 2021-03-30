@@ -12,6 +12,8 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.player.PlayerBedEnterEvent;
+import org.bukkit.event.player.PlayerBedLeaveEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 
 public class Events implements Listener {
@@ -68,6 +70,33 @@ public class Events implements Listener {
             }else{
                 ServerUtils.pvp.put(e.getPlayer().getName(), 0);
             }
+        }
+    }
+
+    int sleepers = 0;
+
+    @EventHandler
+    public void playerSleepEvent(PlayerBedEnterEvent e){
+        sleepers++;
+        int sleepPercent = (sleepers / plguin.getServer().getOnlinePlayers().size()) * 100;
+        if((sleepers / plguin.getServer().getOnlinePlayers().size()) * 100 >= plguin.getConfig().getInt("totalSleeperPercent")){
+            e.getPlayer().getWorld().setTime(1000);
+            e.getPlayer().getWorld().setWeatherDuration(0);
+            e.getPlayer().getWorld().setThunderDuration(0);
+            e.getPlayer().getWorld().setThundering(false);
+            plguin.getServer().broadcastMessage("Good Morning!");
+            sleepers = 0;
+        }else{
+            e.getPlayer().getServer().broadcastMessage(e.getPlayer().getName() + " is sleeping. (" + sleepPercent + "%/" + plguin.getConfig().getInt("totalSleeperPercent") + "%)");
+        }
+    }
+
+    @EventHandler
+    public void playerAwakeEvent(PlayerBedLeaveEvent e){
+        if(e.getPlayer().getWorld().getTime() >= 13000) {
+            sleepers--;
+            int sleepPercent = (sleepers / plguin.getServer().getOnlinePlayers().size()) * 100;
+            e.getPlayer().getServer().broadcastMessage(e.getPlayer().getName() + " woke up. (" + sleepPercent + "%/" + plguin.getConfig().getInt("totalSleeperPercent") + "%)");
         }
     }
 

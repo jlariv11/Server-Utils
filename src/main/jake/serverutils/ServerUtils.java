@@ -37,6 +37,7 @@ public class ServerUtils extends JavaPlugin {
         config.addDefault("tntOverworld", false);
         config.addDefault("tntNether", true);
         config.addDefault("tntEnd", true);
+        config.addDefault("totalSleeperPercent", 50);
         config.options().copyDefaults(true);
         saveConfig();
 
