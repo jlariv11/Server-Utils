@@ -2,6 +2,8 @@ package main.jake.serverutils;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
+import org.bukkit.command.Command;
+import org.bukkit.command.PluginCommand;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.craftbukkit.libs.jline.internal.Log;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -50,7 +52,11 @@ public class ServerUtils extends JavaPlugin {
 
         //Command Registry
         for(String cmd : commands.commands){
-            getCommand(cmd).setExecutor(commands);
+            PluginCommand command = getCommand(cmd);
+            if(command != null){
+                command.setExecutor(commands);
+                command.setTabCompleter(new CommandTabComplete());
+            }
         }
 
         //Read files for saved data
