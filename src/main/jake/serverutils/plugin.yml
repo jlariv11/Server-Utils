@@ -1,6 +1,6 @@
 name: ServerUtils
 author: jlariv11
-version: 2.2
+version: 2.3
 main: main.jake.serverutils.ServerUtils
 description: Adds useful commands for servers
 
