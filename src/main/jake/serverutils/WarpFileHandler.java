@@ -1,17 +1,15 @@
 package main.jake.serverutils;
 
+import org.bukkit.ChatColor;
 import org.bukkit.Location;
-import org.bukkit.World;
 import org.bukkit.craftbukkit.libs.jline.internal.Log;
-import org.bukkit.entity.Player;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.lang.reflect.Array;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Scanner;
 
@@ -36,7 +34,7 @@ public class WarpFileHandler {
                 double x = warp.getLoc().getX();
                 double y = warp.getLoc().getY();
                 double z = warp.getLoc().getZ();
-                writer.write("\n" + warp.getName() + "," + warp.getOwner() + "," + x + "," + y + "," + z + "," + warp.getWorld().getName());
+                writer.write("\n" + warp.getName() + "," + warp.getAccessables() + "," + x + "," + y + "," + z + "," + warp.getWorld().getName());
             }
             writer.close();
         }catch (IOException e){
@@ -50,13 +48,24 @@ public class WarpFileHandler {
         try{
             Scanner scan = new Scanner(warpFile);
             while(scan.hasNext()){
-                String[] line = scan.nextLine().split(",");
+                String l = scan.nextLine();
+                String[] line = l.split(",");
                 if(line.length < 2)
                     continue;
-                double x = Double.parseDouble(line[2]);
-                double y = Double.parseDouble(line[3]);
-                double z = Double.parseDouble(line[4]);
-                warpList.add(new Warp(line[0], line[1], new Location(plugin.getServer().getWorld(line[5]), x, y, z)));
+                List<String> names = new ArrayList<>();
+                for(int i = 1; i < line.length; i++){
+                    if(line[i].contains("]")){
+                        String ln = line[i].replace("]", "").replace("[", "");
+                        ln = ln.replace(" ", "");
+                        names.add(ln);
+                        break;
+                    }
+                    names.add(line[i].replace("[", "").replace(" ", ""));
+                }
+                double x = Double.parseDouble(line[names.size() + 1]);
+                double y = Double.parseDouble(line[names.size() + 2]);
+                double z = Double.parseDouble(line[names.size() + 3]);
+                warpList.add(new Warp(line[0], names, new Location(plugin.getServer().getWorld(line[names.size() + 4]), x, y, z)));
             }
         } catch (FileNotFoundException ignored) {
             //If there is no file, no warps were saved so just return an empty list

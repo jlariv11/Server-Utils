@@ -1,6 +1,6 @@
 name: ServerUtils
 author: jlariv11
-version: 2.3
+version: 2.4
 main: main.jake.serverutils.ServerUtils
 description: Adds useful commands for servers
 
@@ -29,6 +29,11 @@ commands:
     description: Deletes a warp
     usage: /delwarp [name]
     permission: serverutils.delwarp
+    permission-message: You don't have permission to use this command
+  sharewarp:
+    description: allow/disalow someone to use a warp
+    usage: /sharewarp [add/remove] [player]
+    permission: serverutils.sharewarp
     permission-message: You don't have permission to use this command
   xpshare:
     description: Give experience to another player

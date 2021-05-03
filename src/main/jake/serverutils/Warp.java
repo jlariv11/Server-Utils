@@ -3,16 +3,19 @@ package main.jake.serverutils;
 import org.bukkit.Location;
 import org.bukkit.World;
 
+import java.util.Arrays;
+import java.util.List;
+
 public class Warp {
 
     private String name;
-    private String owner;
+    private List<String> accessibles;
     private Location loc;
     private World world;
 
-    public Warp(String name, String owner, Location loc) {
+    public Warp(String name, List<String> accessibles, Location loc) {
         this.name = name;
-        this.owner = owner;
+        this.accessibles = accessibles;
         this.loc = loc;
         this.world = loc.getWorld();
     }
@@ -21,8 +24,8 @@ public class Warp {
         return name;
     }
 
-    public String getOwner() {
-        return owner;
+    public List<String> getAccessables() {
+        return accessibles;
     }
 
     public Location getLoc() {
@@ -34,15 +37,24 @@ public class Warp {
     }
 
     public boolean isPublic(){
-        return owner.equals("public");
+        return accessibles.get(0).equals("public");
     }
 
     public boolean isAvailable(String playerName){
-        return isPublic() || isOwned(playerName);
+        return isPublic() || hasAccess(playerName);
     }
 
     public boolean isOwned(String playerName){
-        return getOwner().equals(playerName);
+        return getAccessables().get(0).equals(playerName);
+    }
+
+    public boolean hasAccess(String playerName){
+        for(String s : getAccessables()){
+            if(s.equals(playerName)){
+                return true;
+            }
+        }
+        return false;
     }
 
 }

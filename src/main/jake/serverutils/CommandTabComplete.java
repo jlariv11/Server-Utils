@@ -15,17 +15,47 @@ public class CommandTabComplete implements TabCompleter {
 
         List<String> args = new ArrayList<>();
 
-        switch(command.getName()){
+        switch(command.getName()) {
             case "pvp":
                 args.add("enable");
                 args.add("disable");
                 args.add("list");
                 break;
             case "warp":
-            case "delwarp":
-                for(Warp warp : ServerUtils.warps){
-                    if(warp.isAvailable(commandSender.getName())){
+                for (Warp warp : ServerUtils.warps) {
+                    if (warp.isAvailable(commandSender.getName())) {
                         args.add(warp.getName());
+                    }
+                }
+                break;
+            case "delwarp":
+                for (Warp warp : ServerUtils.warps) {
+                    if (warp.isOwned(commandSender.getName()) || warp.isPublic()) {
+                        args.add(warp.getName());
+                    }
+                }
+                break;
+            case "sharewarp":
+                if (strings.length == 1) {
+                    args.add("add");
+                    args.add("remove");
+                } else if (strings.length == 2) {
+                    for (Warp warp : ServerUtils.warps) {
+                        if (warp.isOwned(commandSender.getName())) {
+                            args.add(warp.getName());
+                        }
+                    }
+                }else if(strings.length > 3){
+                    if(strings[2].equals("add")) {
+                        args.add("public");
+                        for (Player p : commandSender.getServer().getOnlinePlayers()) {
+                            args.add(p.getName());
+                        }
+                    }else if(strings[2].equals("remove")){
+                        Warp warp = getWarpFromName(strings[3]);
+                        if(warp != null && warp.isOwned(commandSender.getName())){
+                            args.addAll(warp.getAccessables());
+                        }
                     }
                 }
                 break;
@@ -45,5 +75,14 @@ public class CommandTabComplete implements TabCompleter {
 
 
         return args;
+    }
+
+    private Warp getWarpFromName(String name) {
+        for (Warp warp : ServerUtils.warps) {
+            if (warp.getName().equals(name)) {
+                return warp;
+            }
+        }
+        return null;
     }
 }

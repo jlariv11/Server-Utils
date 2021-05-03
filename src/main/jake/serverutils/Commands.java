@@ -5,10 +5,13 @@ import org.bukkit.Location;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.craftbukkit.libs.jline.internal.Log;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 public class Commands implements CommandExecutor, Listener {
 
@@ -16,11 +19,12 @@ public class Commands implements CommandExecutor, Listener {
     public final String setWarp = "setwarp";
     public final String warp = "warp";
     public final String list = "warps";
+    public final String share = "sharewarp";
     public final String delWarp = "delwarp";
     public final String xpShare = "xpshare";
     public final String tpa = "tpa";
 
-    public final String[] commands = {pvp, setWarp, warp, list, delWarp, xpShare, tpa};
+    public final String[] commands = {pvp, setWarp, warp, list, delWarp, xpShare, tpa, share};
     private final ServerUtils plugin;
     private final int pvpCooldown;
     public HashMap<Player, Player> tpaList = new HashMap<>();
@@ -106,20 +110,25 @@ public class Commands implements CommandExecutor, Listener {
                     return false;
                 }
                 if (commandSender instanceof Player) {
-                    String name = "";
+                    List<String> accessables = new ArrayList<>();
                     //determines if the name should be the commandSender's or "public"
-                    if (args.length == 2 && args[1].equals("true")) {
-                        name = "public";
-                    } else {
-                        name = commandSender.getName();
+                    if (args.length == 2 && args[1].equals("public")) {
+                        accessables.add("public");
+                    } else if(args.length > 2){
+                        accessables.add(commandSender.getName());
+                        for(int i = 1; i < args.length; i++){
+                            accessables.add(args[i]);
+                        }
+                    }else {
+                        accessables.add(commandSender.getName());
                     }
                     //Checks to make sure the warp does not already exist
                     //adds the warp to the list using the owner name of the player or "public"
                     if (getWarpFromName(args[0]) == null) {
                         commandSender.sendMessage("Warp " + args[0] + " set!");
-                        ServerUtils.warps.add(new Warp(args[0], name, ((Player) commandSender).getLocation()));
+                        ServerUtils.warps.add(new Warp(args[0], accessables, ((Player) commandSender).getLocation()));
                     } else {
-                        commandSender.sendMessage("This warp already exists");
+                        commandSender.sendMessage("This warp already exists!");
                     }
                 } else {
                     commandSender.sendMessage("Only players can use this command");
@@ -136,6 +145,8 @@ public class Commands implements CommandExecutor, Listener {
                                 toTeleport.setPitch(((Player) commandSender).getLocation().getPitch());
                                 toTeleport.setYaw(((Player) commandSender).getLocation().getYaw());
                                 ((Player) commandSender).teleport(toTeleport);
+                            }else{
+                                commandSender.sendMessage("Warp Unavailable!");
                             }
                         } else {
                             commandSender.sendMessage("Warp does not exist!");
@@ -167,15 +178,68 @@ public class Commands implements CommandExecutor, Listener {
                         //Makes sure the warp exists and that the player owns it
                         //Removes the warp from the warp list
                         if (warp != null) {
-                            if (warp.getOwner().equals("public") || warp.getOwner().equals(commandSender.getName()))
+                            if (warp.getAccessables().get(0).equals("public") || warp.getAccessables().get(0).equals(commandSender.getName())) {
                                 ServerUtils.warps.remove(warp);
-                            commandSender.sendMessage("Warp " + args[0] + " deleted!");
+                                commandSender.sendMessage("Warp " + args[0] + " deleted!");
+                            }
                         } else {
                             commandSender.sendMessage("Warp does not exist!");
                         }
                     } else {
                         return false;
                     }
+                }
+                return true;
+            case share:
+                if(commandSender instanceof Player){
+                    if(args.length > 2){
+                        if(args[0].equals("add")){
+                            Warp warp = getWarpFromName(args[1]);
+                            if(warp != null && warp.isOwned(commandSender.getName())){
+                                for(int i = 2; i < args.length; i++){
+                                    if(args[i].equals("public")){
+                                        warp.getAccessables().clear();
+                                        warp.getAccessables().add("public");
+                                        commandSender.sendMessage(ChatColor.GREEN + args[1] + " made public!");
+                                        break;
+                                    }
+                                    warp.getAccessables().add(args[i]);
+                                    commandSender.sendMessage(ChatColor.GREEN + args[i] + " added to warp!");
+                                    Player toRemove = plugin.getServer().getPlayer(args[1]);
+                                    if(toRemove != null && toRemove.isOnline()){
+                                        toRemove.sendMessage(ChatColor.GREEN + "You have been added to " + commandSender.getName() + "'s " + args[1] + " warp.");
+                                    }
+                                }
+                            }else{
+                                commandSender.sendMessage(ChatColor.RED + "Warp does not exist");
+                            }
+                        }else if(args[0].equals("remove")){
+                            Warp warp = getWarpFromName(args[1]);
+                            if(warp != null && warp.isOwned(commandSender.getName())){
+                                for(int i = 2; i < args.length; i++){
+                                    if(args[i].equals("public") || args[i].equals(commandSender.getName())) {
+                                        continue;
+                                    }
+                                    warp.getAccessables().remove(args[i]);
+                                    commandSender.sendMessage(ChatColor.GREEN + args[i] + " removed from warp!");
+                                    Player toRemove = plugin.getServer().getPlayer(args[1]);
+                                    if(toRemove != null && toRemove.isOnline()){
+                                        toRemove.sendMessage(ChatColor.RED + "You have been removed from " + commandSender.getName() + "'s " + args[1] + " warp.");
+                                    }
+                                }
+                            }else{
+                                commandSender.sendMessage(ChatColor.RED + "Warp does not exist");
+                            }
+                        }else{
+                            commandSender.sendMessage(ChatColor.RED + "Invalid command use");
+                            return false;
+                        }
+                    }else{
+                        commandSender.sendMessage(ChatColor.RED + "Invalid command use");
+                        return false;
+                    }
+                }else{
+                    commandSender.sendMessage("You must be a player to use this command!");
                 }
                 return true;
             //XP SHARE
@@ -217,9 +281,10 @@ public class Commands implements CommandExecutor, Listener {
                 //Makes sure the player to tpa is real and online
                 //Notifies the player that a tpa request has been sent to them and adds the request to the HashMap
                 if (target != null) {
-                    target.sendMessage(commandSender.getName() + " wants to teleport to you. /tpa confirm or /tpa deny");
+                    target.sendMessage(ChatColor.GREEN + commandSender.getName() + " wants to teleport to you. /tpa confirm or /tpa deny");
                     if (tpaList.replace(target, (Player) commandSender) == null) {
                         tpaList.put(target, (Player) commandSender);
+                        commandSender.sendMessage(ChatColor.GREEN + "Request Sent!");
                     }
                 } else if (args[0].equals("confirm")) {
                     //Checks if there is a tpa request for the accepter
@@ -227,7 +292,7 @@ public class Commands implements CommandExecutor, Listener {
                     if (tpaList.containsKey(commandSender)) {
                         tpaList.get(commandSender).teleport(((Player) commandSender).getLocation());
                         tpaList.remove(commandSender);
-                        commandSender.sendMessage("Request confirmed!");
+                        commandSender.sendMessage(ChatColor.GREEN + "Request confirmed!");
                     } else {
                         commandSender.sendMessage("You don't have any active tpa requests!");
                     }
@@ -236,7 +301,7 @@ public class Commands implements CommandExecutor, Listener {
                     //if so remove the request from the HashMap
                     if (tpaList.containsKey(commandSender)) {
                         tpaList.remove(commandSender);
-                        commandSender.sendMessage("Request denied!");
+                        commandSender.sendMessage(ChatColor.RED + "Request denied!");
                     } else {
                         commandSender.sendMessage("You don't have any active tpa requests!");
                     }
