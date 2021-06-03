@@ -23,6 +23,7 @@ public class ServerUtils extends JavaPlugin {
     FileConfiguration config = this.getConfig();
 
 
+    @Override
     public void onEnable(){
 
         File dir = new File("plugins/ServerUtils");
@@ -62,7 +63,7 @@ public class ServerUtils extends JavaPlugin {
         //Read files for saved data
         noPvp = pvpFiles.readNoPvP();
         pvp = pvpFiles.readPvP();
-        warps = warpFile.readFromFile();
+        warps = warpFile.readJsonFile();
 
 
         //Controls the cooldown for switching pvp status counts down 1 per second
@@ -88,7 +89,7 @@ public class ServerUtils extends JavaPlugin {
 
         //Save data to files
         pvpFiles.write();
-        warpFile.writeToFile();
+        warpFile.writeJsonFile();
 
     }
 

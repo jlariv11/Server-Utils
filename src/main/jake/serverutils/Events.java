@@ -19,6 +19,7 @@ import org.bukkit.event.player.PlayerJoinEvent;
 public class Events implements Listener {
 
     private ServerUtils plguin;
+    private int sleepers = 0;
 
     public Events(ServerUtils plugin) {
         this.plguin = plugin;
@@ -64,7 +65,7 @@ public class Events implements Listener {
     @EventHandler
     public void playerJoinEvent(PlayerJoinEvent e){
         //Checks to see if a player has a pvp status and if they don't disable or enable pvp as a default set by config
-        if(ServerUtils.noPvp.containsKey(e.getPlayer().getName()) && ServerUtils.pvp.containsKey(e.getPlayer().getName())){
+        if(!ServerUtils.noPvp.containsKey(e.getPlayer().getName()) && !ServerUtils.pvp.containsKey(e.getPlayer().getName())){
             if(plguin.config.getBoolean("pvpDisableDefault")) {
                 ServerUtils.noPvp.put(e.getPlayer().getName(), 0);
             }else{
@@ -73,33 +74,35 @@ public class Events implements Listener {
         }
     }
 
-    int sleepers = 0;
+
+//         e.getPlayer().getWorld().setTime(1000);
+//                e.getPlayer().getWorld().setWeatherDuration(0);
+//                e.getPlayer().getWorld().setThunderDuration(0);
+//                e.getPlayer().getWorld().setThundering(false);
+//                plguin.getServer().broadcastMessage("Good Morning!");
+
 
     @EventHandler
     public void playerSleepEvent(PlayerBedEnterEvent e){
-        sleepers++;
-        if(e.getBedEnterResult() == PlayerBedEnterEvent.BedEnterResult.OK) {
-            int sleepPercent = (sleepers / plguin.getServer().getOnlinePlayers().size()) * 100;
-            if ((sleepers / plguin.getServer().getOnlinePlayers().size()) * 100 >= plguin.getConfig().getInt("totalSleeperPercent")) {
+        if(e.getBedEnterResult() == PlayerBedEnterEvent.BedEnterResult.OK){
+            sleepers++;
+            int maxSleepPercent = plguin.getConfig().getInt("totalSleeperPercent");
+            int playersToSleep = plguin.getServer().getOnlinePlayers().size() * (maxSleepPercent/100);
+            if(sleepers >= playersToSleep){
                 e.getPlayer().getWorld().setTime(1000);
                 e.getPlayer().getWorld().setWeatherDuration(0);
                 e.getPlayer().getWorld().setThunderDuration(0);
                 e.getPlayer().getWorld().setThundering(false);
                 plguin.getServer().broadcastMessage("Good Morning!");
-                sleepers = 0;
-            } else {
-                e.getPlayer().getServer().broadcastMessage(e.getPlayer().getName() + " is sleeping. (" + sleepPercent + "%/" + plguin.getConfig().getInt("totalSleeperPercent") + "%)");
+            }else{
+                plguin.getServer().broadcastMessage(e.getPlayer().getName() + " is sleeping. (" + sleepers + "/" + playersToSleep + ")");
             }
         }
     }
 
     @EventHandler
     public void playerAwakeEvent(PlayerBedLeaveEvent e){
-        if(e.getPlayer().getWorld().getTime() >= 13000) {
-            sleepers--;
-            int sleepPercent = (sleepers / plguin.getServer().getOnlinePlayers().size()) * 100;
-            e.getPlayer().getServer().broadcastMessage(e.getPlayer().getName() + " woke up. (" + sleepPercent + "%/" + plguin.getConfig().getInt("totalSleeperPercent") + "%)");
-        }
+        sleepers--;
     }
 
 }

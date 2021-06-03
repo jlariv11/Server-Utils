@@ -114,7 +114,7 @@ public class Commands implements CommandExecutor, Listener {
                     //determines if the name should be the commandSender's or "public"
                     if (args.length == 2 && args[1].equals("public")) {
                         accessables.add("public");
-                    } else if(args.length > 2){
+                    } else if(args.length >= 2){
                         accessables.add(commandSender.getName());
                         for(int i = 1; i < args.length; i++){
                             accessables.add(args[i]);
@@ -125,7 +125,11 @@ public class Commands implements CommandExecutor, Listener {
                     //Checks to make sure the warp does not already exist
                     //adds the warp to the list using the owner name of the player or "public"
                     if (getWarpFromName(args[0]) == null) {
-                        commandSender.sendMessage("Warp " + args[0] + " set!");
+                        if(args.length > 1 && args[1].equals("public")){
+                            commandSender.sendMessage("Public warp " + args[0] + " set!");
+                        }else {
+                            commandSender.sendMessage("Warp " + args[0] + " set!");
+                        }
                         ServerUtils.warps.add(new Warp(args[0], accessables, ((Player) commandSender).getLocation()));
                     } else {
                         commandSender.sendMessage("This warp already exists!");
