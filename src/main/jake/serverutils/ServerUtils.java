@@ -61,8 +61,8 @@ public class ServerUtils extends JavaPlugin {
         }
 
         //Read files for saved data
-        noPvp = pvpFiles.readNoPvP();
-        pvp = pvpFiles.readPvP();
+        noPvp = pvpFiles.readPvP(false);
+        pvp = pvpFiles.readPvP(true);
         warps = warpFile.readJsonFile();
 
 

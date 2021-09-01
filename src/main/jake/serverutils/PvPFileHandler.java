@@ -1,65 +1,73 @@
 package main.jake.serverutils;
 
+import org.bukkit.Location;
+import org.bukkit.craftbukkit.libs.jline.internal.Log;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Scanner;
 
 public class PvPFileHandler {
 
-    private final File PVP_FILE = new File("plugins/ServerUtils/pvp.txt");
-    private final File NO_PVP_FILE = new File("plugins/ServerUtils/nopvp.txt");
+    private final File PVP_FILE = new File("plugins/ServerUtils/pvp.json");
 
-    public void write(){
-        //Writes the names of players and their switch cooldown to their corresponding pvp status to files
+    @SuppressWarnings("unchecked")
+    public void write() {
+        JSONObject obj = new JSONObject();
+        for (String player : ServerUtils.pvp.keySet()) {
+            JSONObject playerObj = new JSONObject();
+            playerObj.put("cooldown", ServerUtils.pvp.get(player));
+            playerObj.put("status", "pvp");
+            obj.put(player, playerObj);
+        }
+        for (String player : ServerUtils.noPvp.keySet()) {
+            JSONObject playerObj = new JSONObject();
+            playerObj.put("cooldown", ServerUtils.noPvp.get(player));
+            playerObj.put("status", "nopvp");
+            obj.put(player, playerObj);
+        }
         try {
-            PVP_FILE.createNewFile();
-            NO_PVP_FILE.createNewFile();
             FileWriter writer = new FileWriter(PVP_FILE);
-            for(String s : ServerUtils.pvp.keySet()){
-                writer.write(s + "," + ServerUtils.pvp.get(s) + "\n");
-            }
-            writer.close();
-            FileWriter w = new FileWriter(NO_PVP_FILE);
-            for(String s : ServerUtils.noPvp.keySet()){
-                w.write(s + "," + ServerUtils.noPvp.get(s));
-            }
-            w.close();
+            writer.write(JsonFormatter.prettyPrintJSON(obj.toJSONString()));
         } catch (IOException ignored) {
         }
     }
 
-    //Reads the no pvp file and puts the player name and cooldown into a HashMap
-    public HashMap<String, Integer> readNoPvP(){
-        HashMap<String, Integer> map = new LinkedHashMap<>();
-        try {
-            Scanner sc = new Scanner(NO_PVP_FILE);
-            while(sc.hasNextLine()){
-                String data = sc.nextLine();
-                map.put(data.split(",")[0], Integer.parseInt(data.split(",")[1]));
-            }
-        } catch (FileNotFoundException ignored) {
-            //If the file does not exist then there were no entries into the no pvp status
-        }
-        return map;
-    }
 
-    //Reads the pvp file and puts the player name and cooldown into a HashMap
-    public HashMap<String, Integer> readPvP(){
-        HashMap<String, Integer> map = new LinkedHashMap<>();
+    //Reads the no pvp file and puts the player name and cooldown into a HashMap
+    public HashMap<String, Integer> readPvP(boolean pvpEnabled){
+        HashMap<String, Integer> pvpMap = new HashMap<>();
         try {
-            Scanner sc = new Scanner(PVP_FILE);
-            while(sc.hasNextLine()){
-                String data = sc.nextLine();
-                map.put(data.split(",")[0], Integer.parseInt(data.split(",")[1]));
+            Scanner scanner = new Scanner(PVP_FILE);
+            StringBuilder sb = new StringBuilder();
+            while (scanner.hasNext()){
+                sb.append(scanner.nextLine().replace(" ", ""));
+            }
+            String jsonString = sb.toString();
+            JSONParser parser = new JSONParser();
+            JSONObject obj = (JSONObject) parser.parse(jsonString);
+            for(Object name : obj.keySet()){
+                JSONObject playerObj = (JSONObject) parser.parse(obj.get(name).toString());
+                if(pvpEnabled && playerObj.get("status").equals("pvp")) {
+                    pvpMap.put((String) name, Integer.parseInt((String) playerObj.get("cooldown")));
+                }else if(!pvpEnabled && playerObj.get("status").equals("nopvp")){
+                    pvpMap.put((String) name, Integer.parseInt((String) playerObj.get("cooldown")));
+                }
             }
         } catch (FileNotFoundException ignored) {
-            //If the file does not exist then there were no entries into the pvp status
+
+        } catch (ParseException e) {
+            e.printStackTrace();
         }
-        return map;
+        return pvpMap;
     }
 
 }
