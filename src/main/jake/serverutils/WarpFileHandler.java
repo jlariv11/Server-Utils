@@ -1,14 +1,12 @@
 package main.jake.serverutils;
 
 
+
+
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import org.bukkit.ChatColor;
+import com.google.gson.JsonParser;
 import org.bukkit.Location;
-import org.bukkit.craftbukkit.libs.jline.internal.Log;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -86,23 +84,32 @@ public class WarpFileHandler {
 
     @SuppressWarnings("unchecked")
     public void writeJsonFile(){
-        JSONObject tst = new JSONObject();
+        JsonObject tst = new JsonObject();
+        //JSONObject tst = new JSONObject();
         for(Warp w : warps){
-            JSONObject obj = new JSONObject();
-            obj.put("owner", w.getAccessables().get(0));
-            JSONArray arr = new JSONArray();
-            arr.addAll(w.getAccessables());
-            obj.put("access", arr);
-            obj.put("x", w.getLoc().getX());
-            obj.put("y", w.getLoc().getY());
-            obj.put("z", w.getLoc().getZ());
-            obj.put("world", w.getLoc().getWorld().getName());
-            tst.put(w.getName(), obj);
+            JsonObject obj = new JsonObject();
+            //JSONObject obj = new JSONObject();
+            obj.addProperty("owner", w.getAccessables().get(0));
+            JsonArray arr = new JsonArray();
+            //JSONArray arr = new JSONArray();
+            //arr.addAll(w.getAccessables());
+            for(String access : w.getAccessables()){
+                arr.add(access);
+            }
+            obj.add("access", arr);
+            obj.addProperty("x", w.getLoc().getX());
+            obj.addProperty("y", w.getLoc().getY());
+            obj.addProperty("z", w.getLoc().getZ());
+            obj.addProperty("world", w.getLoc().getWorld().getName());
+            tst.add(w.getName(), obj);
         }
         try{
             FileWriter writer = new FileWriter(warpFile, false);
-
-            writer.write(JsonFormatter.prettyPrintJSON(tst.toJSONString()));
+            if(!tst.isJsonNull()) {
+                writer.write(JsonFormatter.prettyPrintJSON(tst.toString()));
+            }else{
+                System.out.println("Warp is Json Null");
+            }
             writer.close();
         }catch (IOException ignored){
 
@@ -122,22 +129,18 @@ public class WarpFileHandler {
                 sb.append(scanner.nextLine().replace(" ", ""));
             }
             String jsonString = sb.toString();
-            JSONParser parser = new JSONParser();
-            JSONObject obj = (JSONObject) parser.parse(jsonString);
-            for(Object name : obj.keySet()){
-                JSONObject obj2 = (JSONObject) parser.parse(obj.get(name).toString());
-                Warp warp = new Warp((String)name, (List<String>) obj2.get("access"),
-                        new Location(plugin.getServer().getWorld((String) obj2.get("world")), (double)obj2.get("x"), (double)obj2.get("y"), (double)obj2.get("z")));
+            JsonObject obj = JsonParser.parseString(jsonString).getAsJsonObject();
+            for(String name : obj.keySet()){
+                JsonObject obj2 = obj.getAsJsonObject(name);
+                Warp warp = new Warp(name, obj2.get("access").getAsJsonArray().iterator(),
+                        new Location(plugin.getServer().getWorld(obj2.get("world").getAsString()), obj2.get("x").getAsDouble(), obj2.get("y").getAsDouble(), obj2.get("z").getAsDouble()));
                 warps.add(warp);
             }
 
 
         } catch (FileNotFoundException ignored) {
 
-        } catch (ParseException e) {
-            e.printStackTrace();
         }
-
 
         return warps;
     }

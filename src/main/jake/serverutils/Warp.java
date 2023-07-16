@@ -1,9 +1,13 @@
 package main.jake.serverutils;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import org.bukkit.Location;
 import org.bukkit.World;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 
 public class Warp {
@@ -18,6 +22,16 @@ public class Warp {
         this.accessibles = accessibles;
         this.loc = loc;
         this.world = loc.getWorld();
+    }
+    public Warp(String name, Iterator<JsonElement> iter, Location loc){
+        this.name = name;
+        this.loc = loc;
+        this.world = loc.getWorld();
+        List<String> acc = new ArrayList<>();
+        iter.forEachRemaining(jsonElement -> {
+            acc.add(jsonElement.getAsString());
+        });
+        this.accessibles = acc;
     }
 
     public String getName() {

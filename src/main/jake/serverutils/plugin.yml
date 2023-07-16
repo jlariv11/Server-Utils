@@ -1,6 +1,7 @@
 name: ServerUtils
 author: jlariv11
-version: 2.5
+version: 3.0
+api-version: 1.20
 main: main.jake.serverutils.ServerUtils
 description: Adds useful commands for servers
 
@@ -45,9 +46,3 @@ commands:
     usage: /tpa <player> /tpa <confirm/deny>
     permission: serverutils.tpa
     permission-message: You don't have permission to use this command
-
-  test:
-    description: test
-    usage: /test
-    permission: serverutils.test
-    permission-message: test

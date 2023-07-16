@@ -1,11 +1,9 @@
 package main.jake.serverutils;
 
+
 import org.bukkit.ChatColor;
-import org.bukkit.Location;
-import org.bukkit.command.Command;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.craftbukkit.libs.jline.internal.Log;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
@@ -47,7 +45,7 @@ public class ServerUtils extends JavaPlugin {
 
 
 
-        getServer().getConsoleSender().sendMessage(ChatColor.GREEN + "Server Utils has been enabled");
+        getServer().getConsoleSender().sendMessage(ChatColor.DARK_GREEN + "Server Utils has been enabled");
         getServer().getPluginManager().registerEvents(new Events(this), this);
         Commands commands = new Commands(this);
 

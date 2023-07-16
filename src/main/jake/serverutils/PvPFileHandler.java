@@ -1,10 +1,7 @@
 package main.jake.serverutils;
 
-import org.bukkit.Location;
-import org.bukkit.craftbukkit.libs.jline.internal.Log;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -21,22 +18,28 @@ public class PvPFileHandler {
 
     @SuppressWarnings("unchecked")
     public void write() {
-        JSONObject obj = new JSONObject();
+        JsonObject obj = new JsonObject();
+        //JSONObject obj = new JSONObject();
         for (String player : ServerUtils.pvp.keySet()) {
-            JSONObject playerObj = new JSONObject();
-            playerObj.put("cooldown", ServerUtils.pvp.get(player));
-            playerObj.put("status", "pvp");
-            obj.put(player, playerObj);
+            //JSONObject playerObj = new JSONObject();
+            JsonObject playerObj = new JsonObject();
+            playerObj.addProperty("cooldown", ServerUtils.pvp.get(player));
+            playerObj.addProperty("status", "pvp");
+            obj.add(player, playerObj);
         }
         for (String player : ServerUtils.noPvp.keySet()) {
-            JSONObject playerObj = new JSONObject();
-            playerObj.put("cooldown", ServerUtils.noPvp.get(player));
-            playerObj.put("status", "nopvp");
-            obj.put(player, playerObj);
+            JsonObject playerObj = new JsonObject();
+            playerObj.addProperty("cooldown", ServerUtils.noPvp.get(player));
+            playerObj.addProperty("status", "nopvp");
+            obj.add(player, playerObj);
         }
-        try {
-            FileWriter writer = new FileWriter(PVP_FILE);
-            writer.write(JsonFormatter.prettyPrintJSON(obj.toJSONString()));
+        try (FileWriter writer = new FileWriter(PVP_FILE)){
+            if(!obj.isJsonNull()) {
+                writer.write(JsonFormatter.prettyPrintJSON(obj.toString()));
+            }else{
+                System.out.println("Is Json Null");
+            }
+
         } catch (IOException ignored) {
         }
     }
@@ -52,20 +55,21 @@ public class PvPFileHandler {
                 sb.append(scanner.nextLine().replace(" ", ""));
             }
             String jsonString = sb.toString();
-            JSONParser parser = new JSONParser();
-            JSONObject obj = (JSONObject) parser.parse(jsonString);
-            for(Object name : obj.keySet()){
-                JSONObject playerObj = (JSONObject) parser.parse(obj.get(name).toString());
-                if(pvpEnabled && playerObj.get("status").equals("pvp")) {
-                    pvpMap.put((String) name, Integer.parseInt((String) playerObj.get("cooldown")));
-                }else if(!pvpEnabled && playerObj.get("status").equals("nopvp")){
-                    pvpMap.put((String) name, Integer.parseInt((String) playerObj.get("cooldown")));
+            if(jsonString.isEmpty()){
+                return pvpMap;
+            }
+            JsonObject obj = JsonParser.parseString(jsonString).getAsJsonObject();
+            for(String name : obj.keySet()){
+                JsonObject playerObj = obj.getAsJsonObject(name);
+                if(pvpEnabled && playerObj.get("status").getAsString().equals("pvp")) {
+                    pvpMap.put(name, playerObj.get("cooldown").getAsInt());
+                }else if(!pvpEnabled && playerObj.get("status").getAsString().equals("nopvp")){
+                    pvpMap.put(name, playerObj.get("cooldown").getAsInt());
                 }
             }
+            scanner.close();
         } catch (FileNotFoundException ignored) {
 
-        } catch (ParseException e) {
-            e.printStackTrace();
         }
         return pvpMap;
     }
