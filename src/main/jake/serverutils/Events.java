@@ -1,24 +1,21 @@
 package main.jake.serverutils;
 
-import org.bukkit.Material;
 import org.bukkit.World;
-import org.bukkit.block.Block;
-import org.bukkit.block.BlockState;
-import org.bukkit.craftbukkit.libs.jline.internal.Log;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.TNTPrimed;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.EntitySpawnEvent;
 import org.bukkit.event.player.PlayerBedEnterEvent;
-import org.bukkit.event.player.PlayerBedLeaveEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
+
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class Events implements Listener {
 
     private ServerUtils plguin;
-    private int sleepers = 0;
 
     public Events(ServerUtils plugin) {
         this.plguin = plugin;
@@ -37,24 +34,21 @@ public class Events implements Listener {
     }
 
     @EventHandler
-    public void onBlockPlaced(BlockPlaceEvent e){
-        if(e.getBlock().getType() == Material.TNT) {
-            World.Environment environment = e.getPlayer().getWorld().getEnvironment();
-            //check if tnt is being placed in each dimension and checks if it is blocked by config
+    public void onEntitySpawn(EntitySpawnEvent e){
+        if(e.getEntity() instanceof TNTPrimed) {
+            World.Environment environment = e.getEntity().getWorld().getEnvironment();
+            //check if tnt is being spawned in each dimension and checks if it is blocked by config
             //if so cancel the event
             if(environment == World.Environment.NORMAL){
                 if (!plguin.getConfig().getBoolean("tntOverworld")) {
-                    e.getPlayer().sendMessage("TNT is not enabled here");
                     e.setCancelled(true);
                 }
             }else if(environment == World.Environment.NETHER){
                 if (!plguin.getConfig().getBoolean("tntNether")) {
-                    e.getPlayer().sendMessage("TNT is not enabled here");
                     e.setCancelled(true);
                 }
             }else if(environment == World.Environment.THE_END){
                 if (!plguin.getConfig().getBoolean("tntEnd")) {
-                    e.getPlayer().sendMessage("TNT is not enabled here");
                     e.setCancelled(true);
                 }
             }
@@ -74,34 +68,25 @@ public class Events implements Listener {
     }
 
 
-//         e.getPlayer().getWorld().setTime(1000);
-//                e.getPlayer().getWorld().setWeatherDuration(0);
-//                e.getPlayer().getWorld().setThunderDuration(0);
-//                e.getPlayer().getWorld().setThundering(false);
-//                plguin.getServer().broadcastMessage("Good Morning!");
-
-
     @EventHandler
     public void playerSleepEvent(PlayerBedEnterEvent e){
         if(e.getBedEnterResult() == PlayerBedEnterEvent.BedEnterResult.OK){
-            sleepers++;
             int maxSleepPercent = plguin.getConfig().getInt("totalSleeperPercent");
-            int playersToSleep = plguin.getServer().getOnlinePlayers().size() * (maxSleepPercent/100);
-            if(sleepers >= playersToSleep){
-                e.getPlayer().getWorld().setTime(1000);
-                e.getPlayer().getWorld().setWeatherDuration(0);
-                e.getPlayer().getWorld().setThunderDuration(0);
-                e.getPlayer().getWorld().setThundering(false);
-                plguin.getServer().broadcastMessage("Good Morning!");
-            }else{
-                plguin.getServer().broadcastMessage(e.getPlayer().getName() + " is sleeping. (" + sleepers + "/" + playersToSleep + ")");
-            }
+            int maxToSleep = (int)Math.ceil(plguin.getServer().getOnlinePlayers().size() * ((double) maxSleepPercent / 100));
+            AtomicInteger sleeping = new AtomicInteger();
+            sleeping.getAndIncrement();
+            plguin.getServer().getOnlinePlayers().forEach(player -> {
+                if(((sleeping.get() / plguin.getServer().getOnlinePlayers().size()) * 100) >= maxSleepPercent){
+                    e.getPlayer().getWorld().setTime(1000);
+                    e.getPlayer().getWorld().setWeatherDuration(0);
+                    e.getPlayer().getWorld().setThunderDuration(0);
+                    e.getPlayer().getWorld().setThundering(false);
+                    plguin.getServer().broadcastMessage("Good Morning!");
+                }
+            });
+            plguin.getServer().broadcastMessage(String.format("%s is sleeping. (%d/%d) players to skip the night.", e.getPlayer().getName(), sleeping.get(), maxToSleep));
         }
     }
 
-    @EventHandler
-    public void playerAwakeEvent(PlayerBedLeaveEvent e){
-        sleepers--;
-    }
 
 }
